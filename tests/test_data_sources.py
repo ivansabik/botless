@@ -2,11 +2,11 @@ from freezegun import freeze_time
 import pytest
 import responses
 
-from botless.datasources import DataSource, TogglDataSource
+from botless.data_sources import DataSource, TogglDataSource
 from botless.exceptions import MissingParam
 
 
-def test_datasource():
+def test_data_source():
     with pytest.raises(NotImplementedError):
         DataSource()
     with pytest.raises(MissingParam):
