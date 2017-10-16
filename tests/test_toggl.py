@@ -1,15 +1,6 @@
-import pytest
 import responses
 
-from botless.data_targets import DataTarget, SlackDataTarget
-from botless.exceptions import MissingParam
-
-
-def test_data_target():
-    with pytest.raises(NotImplementedError):
-        DataTarget()
-    with pytest.raises(MissingParam):
-        DataTarget(name='test_data_target', env_vars=['var_one'])
+from botless.integrations import Slack
 
 
 @responses.activate
@@ -29,9 +20,9 @@ def test_slack(monkeypatch):
             'ts': '1499232812.825733'
         }
     }
-    responses.add(responses.POST, SlackDataTarget.SLACK_POST_MESSAGE_URL, json=mock_response, status=200)
+    responses.add(responses.POST, Slack.SLACK_POST_MESSAGE_URL, json=mock_response, status=200)
 
-    slack = SlackDataTarget()
+    slack = Slack()
     assert slack.SLACK_API_TOKEN == 'fake-token-for-slack'
     response = slack.post_message(channel='afr_bc', text='This is botless')
 

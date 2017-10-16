@@ -1,44 +1,22 @@
-import os
+import datetime
 import time
-from datetime import datetime
 
 import requests
 
-from botless.exceptions import MissingParam
+from botless.models import AppIntegration
+
+TOGGL_REPORTS_DETAILS_URL = 'https://toggl.com/reports/api/v2/details'
 
 
-class DataSource():
-    def __init__(self, **kwargs):
-        self.env_vars = kwargs.get('env_vars', [])
-        self.name = kwargs.get('name')
-
-        if not self.name:
-            if not kwargs.get('name'):
-                raise NotImplementedError('name attribute is required for all data sources')
-        else:
-            self.name = kwargs.get('name')
-
-        # Validate all env_vars specified exist as environment variables
-        for env_var in self.env_vars:
-            if not os.getenv(env_var):
-                raise MissingParam('{} is required'.format(env_var))
-            else:
-                setattr(self, env_var, os.getenv(env_var))
-
-
-# DataSource definitions/implementations
-
-class TogglDataSource(DataSource):
-    TOGGL_REPORTS_DETAILS_URL = 'https://toggl.com/reports/api/v2/details'
-
+class Toggl(AppIntegration):
     def __init__(self):
         self.since = datetime(datetime.now().year, 1, 1).strftime('%Y-%m-%d')
         self.until = datetime.now().strftime('%Y-%m-%d')
-        DataSource.__init__(self, name='toggl', env_vars=['TOGGL_API_KEY', 'TOGGL_WORKSPACE_ID'])
+        AppIntegration.__init__(self, name='toggl', config_vars=['TOGGL_API_KEY', 'TOGGL_WORKSPACE_ID'])
 
     def get_detailed_report(self, since=None, until=None, user_ids=None, billable='both'):
         """
-        Example of an entry:
+        Example successful response:
         {
             "id": 100,
             "pid": 200,

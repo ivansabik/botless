@@ -1,16 +1,7 @@
 from freezegun import freeze_time
-import pytest
 import responses
 
-from botless.data_sources import DataSource, TogglDataSource
-from botless.exceptions import MissingParam
-
-
-def test_data_source():
-    with pytest.raises(NotImplementedError):
-        DataSource()
-    with pytest.raises(MissingParam):
-        DataSource(name='test_data_source', env_vars=['var_one'])
+from botless.integrations import Toggl
 
 
 @freeze_time('2017-12-31')
@@ -18,7 +9,7 @@ def test_toggl_since_until_defaults(monkeypatch):
     monkeypatch.setenv('TOGGL_API_KEY', 'SECRET_API_KEY')
     monkeypatch.setenv('TOGGL_WORKSPACE_ID', '649573')
 
-    toggl = TogglDataSource()
+    toggl = Toggl()
 
     assert toggl.since == '2017-01-01'
     assert toggl.until == '2017-12-31'
@@ -67,9 +58,9 @@ def test_toggl(monkeypatch):
             }
         ]
     }
-    responses.add(responses.GET, TogglDataSource.TOGGL_REPORTS_DETAILS_URL, json=mock_response, status=200)
+    responses.add(responses.GET, Toggl.TOGGL_REPORTS_DETAILS_URL, json=mock_response, status=200)
 
-    toggl = TogglDataSource()
+    toggl = Toggl()
     report = toggl.get_detailed_report(user_ids='2879549', since='2017-07-01', until='2017-07-04')
 
     assert report[0] == {
