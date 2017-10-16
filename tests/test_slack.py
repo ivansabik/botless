@@ -1,87 +1,37 @@
-from freezegun import freeze_time
 import responses
 
-from botless.integrations import Toggl
-
-
-@freeze_time('2017-12-31')
-def test_toggl_since_until_defaults(monkeypatch):
-    monkeypatch.setenv('TOGGL_API_KEY', 'SECRET_API_KEY')
-    monkeypatch.setenv('TOGGL_WORKSPACE_ID', '649573')
-
-    toggl = Toggl()
-
-    assert toggl.since == '2017-01-01'
-    assert toggl.until == '2017-12-31'
+from botless.integrations import Slack
 
 
 @responses.activate
-def test_toggl(monkeypatch):
-    monkeypatch.setenv('TOGGL_API_KEY', 'SECRET_API_KEY')
-    monkeypatch.setenv('TOGGL_WORKSPACE_ID', '649573')
+def test_slack(monkeypatch):
+    monkeypatch.setenv('SLACK_API_TOKEN', 'fake-token-for-slack')
 
     mock_response = {
-        'total_grand': 30149000,
-        'total_billable': 0,
-        'total_currencies': [
-            {
-                'currency': 'USD',
-                'amount': 0
-            }
-        ],
-        'total_count': 1,
-        'per_page': 50,
-        'data': [
-            {
-                'id': 632804082,
-                'pid': 5860998,
-                'tid': 10906376,
-                'uid': 2879549,
-                'description': 'Working hard',
-                'start': '2017-07-03T08:05:49-05:00',
-                'end': '2017-07-03T16:28:18-05:00',
-                'updated': '2017-07-03T16:28:20-05:00',
-                'dur': 30149000,
-                'user': 'Luigi Brian',
-                'use_stop': True,
-                'client': None,
-                'project': 'Support',
-                'project_color': '0',
-                'project_hex_color': '#c56bff',
-                'task': 'VIT (Very Important Task)',
-                'billable': 0,
-                'is_billable': False,
-                'cur': 'USD',
-                'tags': [
-                    'Laser Tag'
-                ]
-            }
-        ]
+        'ok': True,
+        'channel': 'CHANNELID',
+        'ts': '1499232812.825733',
+        'message': {
+            'text': 'This is botless',
+            'username': 'Slack API Tester',
+            'bot_id': 'BOTID',
+            'type': 'message',
+            'subtype': 'bot_message',
+            'ts': '1499232812.825733'
+        }
     }
-    responses.add(responses.GET, Toggl.TOGGL_REPORTS_DETAILS_URL, json=mock_response, status=200)
+    responses.add(responses.POST, Slack.SLACK_POST_MESSAGE_URL, json=mock_response, status=200)
 
-    toggl = Toggl()
-    report = toggl.get_detailed_report(user_ids='2879549', since='2017-07-01', until='2017-07-04')
+    slack = Slack()
+    assert slack.SLACK_API_TOKEN == 'fake-token-for-slack'
+    response = slack.post_message(channel='afr_bc', text='This is botless')
 
-    assert report[0] == {
-        'billable': 0.0,
-        'client': None,
-        'cur': 'USD',
-        'description': 'Working hard',
-        'dur': 30149000,
-        'end': '2017-07-03T16:28:18-05:00',
-        'id': 632804082,
-        'is_billable': False,
-        'pid': 5860998,
-        'project': 'Support',
-        'project_color': '0',
-        'project_hex_color': '#c56bff',
-        'start': '2017-07-03T08:05:49-05:00',
-        'tags': ['Laser Tag'],
-        'task': 'VIT (Very Important Task)',
-        'tid': 10906376,
-        'uid': 2879549,
-        'updated': '2017-07-03T16:28:20-05:00',
-        'use_stop': True,
-        'user': 'Luigi Brian'
-    }
+    assert response['ok'] is True
+    assert response['channel'] == 'CHANNELID'
+    assert response['ts'] == '1499232812.825733'
+    assert response['message']['text'] == 'This is botless'
+    assert response['message']['username'] == 'Slack API Tester'
+    assert response['message']['bot_id'] == 'BOTID'
+    assert response['message']['type'] == 'message'
+    assert response['message']['subtype'] == 'bot_message'
+    assert response['message']['ts'] == '1499232812.825733'
