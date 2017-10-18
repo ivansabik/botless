@@ -1,7 +1,7 @@
 from freezegun import freeze_time
 import responses
 
-from botless.integrations import Toggl
+from botless.integrations.toggl import Toggl, TOGGL_REPORTS_DETAILS_URL
 
 
 @freeze_time('2017-12-31')
@@ -58,7 +58,7 @@ def test_toggl(monkeypatch):
             }
         ]
     }
-    responses.add(responses.GET, Toggl.TOGGL_REPORTS_DETAILS_URL, json=mock_response, status=200)
+    responses.add(responses.GET, TOGGL_REPORTS_DETAILS_URL, json=mock_response, status=200)
 
     toggl = Toggl()
     report = toggl.get_detailed_report(user_ids='2879549', since='2017-07-01', until='2017-07-04')

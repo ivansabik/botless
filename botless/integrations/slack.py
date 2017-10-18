@@ -8,6 +8,9 @@ SLACK_POST_MESSAGE_URL = 'http://slack.com/api/chat.postMessage'
 
 
 class Slack(AppIntegration):
+    """
+    Currently using legacy tokens: https://api.slack.com/custom-integrations/legacy-tokens
+    """
     config_vars = ['SLACK_API_TOKEN']
     name = 'slack'
 
@@ -40,5 +43,10 @@ class Slack(AppIntegration):
         }
         response = requests.post(SLACK_POST_MESSAGE_URL, params=params)
         response.raise_for_status()
-
-        return response.json()
+        response_dict = response.json()
+        # Slack is not giving the HTTP for failure but instead
+        # {u'ok': False, u'error': u'invalid_auth'}
+        if 'error' in response_dict:
+            raise Exception(response_dict.get('error'))
+        else:
+            return response_dict

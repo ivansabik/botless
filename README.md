@@ -5,6 +5,8 @@ Serverless bot framework for automating tasks from external applications (like G
 - [Huginn](https://github.com/huginn/huginn)
 - [IFTTT](https://ifttt.com)
 
+A key difference is that for now botless is intended to provide a framework and tools used to developers or people who know how to code in Python.
+
 ## App Integrations
 - Amazon S3
 - GitHub
