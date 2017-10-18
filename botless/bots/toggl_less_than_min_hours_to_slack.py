@@ -1,5 +1,7 @@
 import calendar
 import datetime
+import dateutil
+
 import unidecode
 
 from botless.integrations.slack import Slack
@@ -15,8 +17,9 @@ class TogglLessThanMinHoursToSlack(Bot):
     """
     user_ids = None
 
-    def run(self, start_date=None, frequency='week', min_hours=37):
+    def run(self, start_date=None, frequency='week', min_hours=37, channel=None):
         """
+        @param channel: String with the Slack channel to post to.
         @param start_date: String with a date YYYYMMDD to be used for the check.
                            Defaults to last week since this bot is intended to run on Monday.
         @param frequency: String with the date range interval frequency (week, month, year are currently supported).
@@ -24,6 +27,11 @@ class TogglLessThanMinHoursToSlack(Bot):
                           than this hours in Toggle they will be included in the
                           Slack notification.
         """
+        if not channel:
+            raise Exception('A channel is required')
+        if start_date:
+            start_date = dateutil.parser.parse(start_date)
+        min_hours = int(min_hours)
         today_last_week = datetime.datetime.today() - datetime.timedelta(weeks=1)
         if frequency == 'week':
             if not start_date:
@@ -32,12 +40,14 @@ class TogglLessThanMinHoursToSlack(Bot):
         elif frequency == 'month':
             if not start_date:
                 start_date = datetime.datetime(today_last_week.year, today_last_week.month, 1)
-            last_day_of_month = calendar.monthrange(today_last_week.year, today_last_week.month)[1]
-            end_date = datetime.datetime(today_last_week.year, today_last_week.month, last_day_of_month)
-        if frequency == 'year':
+            last_day_of_month = calendar.monthrange(start_date.year, start_date.month)[1]
+            end_date = datetime.datetime(start_date.year, start_date.month, last_day_of_month)
+        elif frequency == 'year':
             if not start_date:
                 start_date = datetime.datetime(today_last_week.year, 1, 1)
             end_date = datetime.datetime(today_last_week.year, 12, 31)
+        else:
+            raise Exception('Unsupported frequency {}'.format(frequency))
         toggl = Toggl()
         print('Getting detailed report from Toggl from {} until {}'.format(start_date, end_date))
         details_df = toggl.get_detailed_report(
@@ -57,14 +67,15 @@ class TogglLessThanMinHoursToSlack(Bot):
         summary_df['durationHours'] = summary_df['durationHours'].round(2)
         summary_df['user'] = summary_df['user'].map(lambda x: unidecode.unidecode(x))
         summary_df = summary_df.sort_values(by='durationHours', ascending=True)
+        summary_df.columns = ['User', 'Hours']
 
         # Post to slack
         slack = Slack()
-        base_message = 'The following users have registered less than {0} hours from {1} to {2}:\n{3}'
+        base_message = 'The following users have registered less than {0} hours from {1} to {2}:\n```\n{3}\n```'
         message = base_message.format(
             min_hours,
             start_date.strftime('%Y-%m-%d'),
             end_date.strftime('%Y-%m-%d'),
-            summary_df.to_string(index=False, header=False, justify='left')
+            summary_df.to_string(index=False, justify='left')
         )
-        slack.post_message(channel='ops_managers_bots', text=message)
+        slack.post_message(channel=channel, text=message)

@@ -35,3 +35,8 @@ Examples:
 1. Install virtualenv, create new virtualenv and activate it
 2. Install deployment requirements `pip install -r requirements/dev.txt`
 3. Set your configuration values like api keys, account IDs, etc. in a file named `.env`
+
+### Add a new bot
+>:exclamation: Important :exclamation:
+
+>Keep in mind your bots will ultimately run as an AWS Lambda call so it will need to stick to the 5 minutes and memory limits defined by AWS.
