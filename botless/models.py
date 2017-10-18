@@ -19,9 +19,6 @@ class AppIntegration:
     triggers = None
 
     def __init__(self, **kwargs):
-        self.config_vars = kwargs.get('config_vars', [])
-        self.name = kwargs.get('name')
-
         if not self.name:
             if not kwargs.get('name'):
                 raise NotImplementedError('name attribute is required for all data sources')
@@ -30,7 +27,7 @@ class AppIntegration:
 
         # Validate all config_vars specified exist as environment variables
         for config_var in self.config_vars:
-            if not os.getenv(config_var):
+            if not get_config_var(config_var):
                 raise MissingParam('{} is required'.format(config_var))
             else:
                 setattr(self, config_var, os.getenv(config_var))

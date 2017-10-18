@@ -1,6 +1,10 @@
+'''
+Based on https://github.com/toggl/toggl_api_docs/blob/master/reports.md
+'''
 import datetime
 import time
 
+import pandas as pd
 import requests
 
 from botless.models import AppIntegration
@@ -9,13 +13,24 @@ TOGGL_REPORTS_DETAILS_URL = 'https://toggl.com/reports/api/v2/details'
 
 
 class Toggl(AppIntegration):
-    def __init__(self):
-        self.since = datetime(datetime.now().year, 1, 1).strftime('%Y-%m-%d')
-        self.until = datetime.now().strftime('%Y-%m-%d')
-        AppIntegration.__init__(self, name='toggl', config_vars=['TOGGL_API_KEY', 'TOGGL_WORKSPACE_ID'])
+    config_vars = ['TOGGL_API_KEY', 'TOGGL_WORKSPACE_ID']
+    name = 'toggl'
 
-    def get_detailed_report(self, since=None, until=None, user_ids=None, billable='both'):
+    def __init__(self):
+        self.since = datetime.datetime(datetime.datetime.now().year, 1, 1).strftime('%Y-%m-%d')
+        self.until = datetime.datetime.now().strftime('%Y-%m-%d')
+        AppIntegration.__init__(self)
+
+    def get_detailed_report(self, since=None, until=None, user_ids=None, billable='both', as_df=False):
         """
+        @param since: String with ISO 8601 date (YYYY-MM-DD) format. Defaults to today
+        @param until: String with ISO 8601 date (YYYY-MM-DD) format. Note: Maximum date span
+                      (until - since) is one year. Defaults to first day of current year
+        @param user_ids: String with a list of user IDs separated by a comma.
+        @param billable: String indicating the billable filter, "yes", "no", or "both". Defaults to "both".
+        @as_df: Boolean indicating if a pandas df should be returned instead of a dictionary
+        return: pandas.DataFrame or dictionary with results for users and dates specified
+
         Example successful response:
         {
             "id": 100,
@@ -53,7 +68,7 @@ class Toggl(AppIntegration):
         entries = []
 
         while fetched_records < to_fetch_records:
-            print('Fetching from Toggl {} of {}'.format(fetched_records, to_fetch_records))
+            print('Fetching from Toggl since {} until {}, {} of {}'.format(since, until, fetched_records, to_fetch_records))
             # There is rate limiting of 1 request per second (per IP per API token) so sleeping to make sure
             time.sleep(1)
             params = {
@@ -61,11 +76,12 @@ class Toggl(AppIntegration):
                 'since': self.since,
                 'until': self.until,
                 'user_agent': 'botless',
-                'user_ids': user_ids,
                 'page': page,
                 'billable': billable
             }
-            response = requests.get(self.TOGGL_REPORTS_DETAILS_URL, auth=(self.TOGGL_API_KEY, 'api_token'), params=params)
+            if user_ids:
+                params['user_ids'] = user_ids
+            response = requests.get(TOGGL_REPORTS_DETAILS_URL, auth=(self.TOGGL_API_KEY, 'api_token'), params=params)
             response.raise_for_status()
 
             response_dict = response.json()
@@ -76,4 +92,12 @@ class Toggl(AppIntegration):
             to_fetch_records = response_dict['total_count'] - fetched_records
             page += 1
 
-        return entries
+        if not as_df:
+            return entries
+        else:
+            df = pd.DataFrame(entries)
+            if not df.empty:
+                df['updated'] = df['updated'].astype('datetime64')
+                df['end'] = df['end'].astype('datetime64')
+                df['start'] = df['start'].astype('datetime64')
+            return df

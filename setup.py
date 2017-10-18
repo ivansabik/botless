@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 
-with open('requirements.txt') as f:
+with open('requirements/base.txt') as f:
     required = f.read().splitlines()
 
 setup(

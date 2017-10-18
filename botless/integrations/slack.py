@@ -8,10 +8,13 @@ SLACK_POST_MESSAGE_URL = 'http://slack.com/api/chat.postMessage'
 
 
 class Slack(AppIntegration):
+    config_vars = ['SLACK_API_TOKEN']
+    name = 'slack'
+
     def __init__(self):
-        self.since = datetime(datetime.now().year, 1, 1).strftime('%Y-%m-%d')
-        self.until = datetime.now().strftime('%Y-%m-%d')
-        AppIntegration.__init__(self, name='slack', config_vars=['SLACK_API_TOKEN'])
+        self.since = datetime.datetime(datetime.datetime.now().year, 1, 1).strftime('%Y-%m-%d')
+        self.until = datetime.datetime.now().strftime('%Y-%m-%d')
+        AppIntegration.__init__(self)
 
     def post_message(self, channel=None, text=None):
         """
@@ -35,7 +38,7 @@ class Slack(AppIntegration):
             'channel': channel,
             'text': text
         }
-        response = requests.post(self.SLACK_POST_MESSAGE_URL, params=params)
+        response = requests.post(SLACK_POST_MESSAGE_URL, params=params)
         response.raise_for_status()
 
         return response.json()
