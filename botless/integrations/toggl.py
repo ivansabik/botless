@@ -67,7 +67,7 @@ class Toggl(AppIntegration):
         page = 1
         entries = []
 
-        while fetched_records < to_fetch_records:
+        while to_fetch_records > 0:
             print('Fetching from Toggl since {} until {}, {} of {}'.format(since, until, fetched_records, to_fetch_records))
             # There is rate limiting of 1 request per second (per IP per API token) so sleeping to make sure
             time.sleep(1)
