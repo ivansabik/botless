@@ -100,4 +100,6 @@ ENV/
 # mypy
 .mypy_cache/
 
+shippable/
 .DS_Store
+.env

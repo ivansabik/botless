@@ -1,0 +1,7 @@
+freezegun==0.3.9
+pudb==2017.1.4
+pytest-cov==2.4.0
+pytest==3.0.7
+python-dotenv==0.7.1
+responses==0.5.1
+-r base.txt
