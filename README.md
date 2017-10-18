@@ -19,9 +19,9 @@ A key difference is that for now botless is intended to provide a framework and 
 Bots are workflows that can be run on a schedule or based on a trigger (webhook). Bots are composed of different actions that can take in variable arguments or parameters.
 
 Examples:
- - Get Toggl summaries and alert to a slack channel based on filters (users, start date, end date)
- - Get Toggl summaries and paste into Google Spreadsheets
- - Get information from GitHub (Pull Requests in a list of repositories, Issue Comments in a list of repositories, Commits in a list of repositories)
+ - Get number of hours registered in Toggl and alert to a slack channel the users that have less than a certain amount of hours
+ - Get detailed reports from Toggl and put in a Google Spreadsheet
+ - Get information from GitHub (Pull Requests in a list of repositories, Issue Comments in a list of repositories, Commits in a list of repositories) and put as CSV in an S3 bucket
 
 ## Installation in AWS
  1. Install virtualenv, create new virtualenv and activate it
